@@ -1959,7 +1959,7 @@ jQuery.sheet = {
 					if (!newTitle) { //The user didn't set the new tab name
 						newTitle = (sheetTab ? sheetTab.substring(0,8) : 'Matris ' + (jS.i + 1));
 					} else {
-						titleArray = newTitle.split("|",2);
+						titleArray = newTitle.split(":",2);
 						if (titleArray.length == 2)
 						{
 							if (titleArray[0] == "TERS" || titleArray[0] == "DET" || titleArray[0] == "TRANS")
@@ -2174,7 +2174,7 @@ jQuery.sheet = {
 							var tds = tr.find('td');
 							colCount = tds.length;
 							
-							document['data']['r' + i] = {};
+							document['data'][i] = {};
 							//document['data']['r' + i]['h'] = tr.attr('height');
 							
 							tds.each(function(j) {
@@ -2190,12 +2190,13 @@ jQuery.sheet = {
 									 //'cl': td.attr('class')
 								};
 								*/
-								document['data']['r' + i]['c' + j] = td.text();
+								document['data'][i][j] = td.text();
 							});
 						});
 						document['metadata'] = {
 							'columns': colCount, //length is 1 based, index is 0 based
 							'rows': rowCount, //length is 1 based, index is 0 based
+							'act': table.attr('act'),
 							'title': table.attr('title')
 							//'col_widths': {}
 						};
