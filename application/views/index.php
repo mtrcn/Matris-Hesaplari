@@ -4,16 +4,13 @@
 <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
 <META HTTP-EQUIV="Expires" CONTENT="-1">
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<title>Matris</title>
-<!--Required-->
-<link rel="stylesheet" type="text/css" href="jquery.sheet.css" />
-<link rel="stylesheet" type="text/css"
-	href="jquery-ui/theme/jquery-ui.css" />
-<script type="text/javascript" src="jquery-1.4.3.min.js">
-        </script>
-<script type="text/javascript" src="jquery.sheet.js"></script>
-<script type="text/javascript" src="jquery-ui/ui/jquery-ui.min.js"></script>
-<!--/Required-->
+<title>Matris Hesapları</title>
+<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>css/jquery.sheet.css" />
+<link rel="stylesheet" type="text/css"	href="<?php echo base_url(); ?>js/jquery-ui/theme/jquery-ui.css" />
+<script type="text/javascript" src="<?php echo base_url(); ?>js/jquery-1.5.2.min.js"></script>
+<script type="text/javascript" src="<?php echo base_url(); ?>js/jquery.sheet.js"></script>
+<script type="text/javascript" src="<?php echo base_url(); ?>js/jquery-ui/ui/jquery-ui.min.js"></script>
+<script type="text/javascript" src="<?php echo base_url(); ?>js/json.js"></script>
 
 <script type="text/javascript">
 			var req = {};		
@@ -47,7 +44,7 @@
 						  formul+="<select id=\"opt_"+i+"\">"
 						  +"<option value=\"sum\">+</option>"
 						  +"<option value=\"minus\">-</option>"
-						  +"<option value=\"multply\">x</option>"
+						  +"<option value=\"multiply\">x</option>"
 						  +"<option value=\"\">|</option>"
 						  +"</select>";
 					  if (i==5) formul+="<br/>";
@@ -95,6 +92,14 @@
 					}
 					req['formula']['mat'][i] = $('#mat_'+i).val();
 				}
+
+				$.post(
+						"<?php echo base_url(); ?>calc/evaluate", 
+						{req: $.toJSON(req)},
+						function(result){
+							result = eval("("+result+")");
+						}
+				);
 				
 				
 			}
@@ -163,7 +168,7 @@ body {
 <table style="width: 100%;">
 	<tr>
 		<td colspan="2">
-			<img src="images/banner.png" border="0">
+			<img src="<?php echo base_url(); ?>images/banner.png" border="0">
 		</td>
 	</tr>
 	<tr>
@@ -187,40 +192,40 @@ body {
 <span id="inlineMenu" style="display: none;"> <span> <a
 	href="#" onclick="sheetInstance.controlFactory.addRow(); return false;"
 	title="Altına Satır Ekle"> <img alt="Altına Satır Ekle"
-	src="pics/icons/sheet_row_add.png" /> </a> <a href="#"
+	src="<?php echo base_url(); ?>images/icons/sheet_row_add.png" /> </a> <a href="#"
 	onclick="sheetInstance.controlFactory.addRow(null, true); return false;"
 	title="Üstüne Satır Ekle"> <img alt="Üstüne Satır Ekle"
-	src="pics/icons/sheet_row_add.png" /> </a> <a href="#"
+	src="<?php echo base_url(); ?>images/icons/sheet_row_add.png" /> </a> <a href="#"
 	onclick="sheetInstance.controlFactory.addRow(null, null, ':last'); return false;"
 	title="Sona Satır Ekle"> <img alt="Sona Satır Ekle"
-	src="pics/icons/sheet_row_add.png" /> </a> <a href="#"
+	src="<?php echo base_url(); ?>images/icons/sheet_row_add.png" /> </a> <a href="#"
 	onclick="sheetInstance.controlFactory.addRowMulti(); return false;"
 	title="Birden Fazla Satır Ekle"> <img alt="Birden Fazla Satır Ekle"
-	src="pics/icons/sheet_row_add_multi.png" /> </a> <a href="#"
+	src="<?php echo base_url(); ?>images/icons/sheet_row_add_multi.png" /> </a> <a href="#"
 	onclick="sheetInstance.deleteRow(); return false;" title="Satır Sil">
-<img alt="Satır Sil" src="pics/icons/sheet_row_delete.png" /> </a> <a
+<img alt="Satır Sil" src="<?php echo base_url(); ?>images/icons/sheet_row_delete.png" /> </a> <a
 	href="#"
 	onclick="sheetInstance.controlFactory.addColumn(); return false;"
 	title="Sağa Sütun Ekle"> <img alt="Sağa Sütun Ekle"
-	src="pics/icons/sheet_col_add.png" /> </a> <a href="#"
+	src="<?php echo base_url(); ?>images/icons/sheet_col_add.png" /> </a> <a href="#"
 	onclick="sheetInstance.controlFactory.addColumn(null, true); return false;"
 	title="Sola Sütun Ekle"> <img alt="Sola Sütun Ekle"
-	src="pics/icons/sheet_col_add.png" /> </a> <a href="#"
+	src="<?php echo base_url(); ?>images/icons/sheet_col_add.png" /> </a> <a href="#"
 	onclick="sheetInstance.controlFactory.addColumn(null, null, ':last'); return false;"
 	title="Sona Sütun Ekle"> <img alt="Sona Sütun Ekle"
-	src="pics/icons/sheet_col_add.png" /> </a> <a href="#"
+	src="<?php echo base_url(); ?>images/icons/sheet_col_add.png" /> </a> <a href="#"
 	onclick="sheetInstance.controlFactory.addColumnMulti(); return false;"
 	title="Birden Fazla Sütun Ekle"> <img alt="Birden Fazla Sütun Ekle"
-	src="pics/icons/sheet_col_add_multi.png" /> </a> <a href="#"
+	src="<?php echo base_url(); ?>images/icons/sheet_col_add_multi.png" /> </a> <a href="#"
 	onclick="sheetInstance.deleteColumn(); return false;" title="Sütun Sil">
-<img alt="Sütun Sil" src="pics/icons/sheet_col_delete.png" /> </a> <a
+<img alt="Sütun Sil" src="<?php echo base_url(); ?>images/icons/sheet_col_delete.png" /> </a> <a
 	href="#" onclick="sheetInstance.deleteSheet(); return false;"
 	title="Matris Sil"> <img alt="Matris Sil"
-	src="pics/icons/table_delete.png" /> </a> <a href="#"
+	src="<?php echo base_url(); ?>images/icons/table_delete.png" /> </a> <a href="#"
 	onclick="sheetInstance.cellFind(); return false;" title="Ara"> <img
-	alt="Ara" src="pics/icons/find.png" /> </a> <a href="#"
+	alt="Ara" src="<?php echo base_url(); ?>images/icons/find.png" /> </a> <a href="#"
 	onclick="sheetInstance.toggleFullScreen(); $('#lockedMenu').toggle(); return false;"
 	title="Tam Ekran"> <img alt="Tam Ekran"
-	src="pics/icons/arrow_out.png" /> </a> </span> </span>
+	src="<?php echo base_url(); ?>images/icons/arrow_out.png" /> </a> </span> </span>
 </body>
 </html>
