@@ -13,8 +13,80 @@ class MatrixModel extends CI_Model {
 		parent::__construct();
 	}
 	
+	/**
+	 * Tüm proje verilerini veritabanından yükler
+	 *
+	 * @return Object
+	 */
+	function getProjects()
+	{
+		$result = $this->db->where('uid',$this->gu_session->getUID())->get('projects');
+		if ($result==null)
+		{
+			return null;
+		}
+		return $result;
+	}
+	
+	/**
+	 * Proje verilerini veritabanından yükler
+	 *
+	 * @param Integer $pid proje no (gerekli)
+	 * @return Array
+	 */
+	function getProject($pid)
+	{
+		$dbResult = $this->db->where('pid',$pid)->where('uid',$this->gu_session->getUID())->get('projects')->row();
+		if ($dbResult==null)
+		{
+			return null;
+		}
+		$result = array(
+			'params' => $dbResult->params,
+		);
+		return $result;
+	}
+	
+	/**
+	 * Proje daha önce kayıtlı mı kontrol eder
+	 *
+	 * @param String $tag proje etiketi (gerekli)
+	 * @return Boolean
+	 */
+	function isExist($tag){
+		$isExist=$this->db->where('uid',$this->gu_session->getUID())->where('tag',$tag)->get('projects')->num_rows();
+		if ($isExist)
+		{
+			return TRUE;
+		}else
+		{
+			return FALSE;
+		}
+	}
+	
+	/**
+	 * Yeni proje kayıt eder
+	 *
+	 * @param Array $data proje verileri (gerekli)
+	 * @return Boolean
+	 */
+	function save($data){
+		return $this->db->insert('projects',$data);
+	}
+	
+	/**
+	 * Kayıtlı projeyi siler
+	 *
+	 * @param Integer $pid proje no (gerekli)
+	 * @return Boolean
+	 */
+	function delete($pid)
+	{
+		$dbResult = $this->db->where('pid',$pid)->where('uid',$this->gu_session->getUID())->delete('projects');
+		return $dbResult;
+	}
+	
 	function det($matrix){
-		echo json_encode($matrix);
 		$params=array(
 			'matrix_a'=>json_encode($matrix)
 		);
@@ -24,9 +96,9 @@ class MatrixModel extends CI_Model {
 			$data['errorMessage']="GUPA ile iletişim kurulamadı!";
 			return $data;
 		}
-		if ($result['error_code']==0)
+		if (isset($result['det']))
 		{
-			return $result['det'];
+			return json_decode($result['det']);
 		}else
 		{
 			$data['errorMessage']=$this->gupaErrorMessage($result['error_code']);
@@ -44,9 +116,9 @@ class MatrixModel extends CI_Model {
 			$data['errorMessage']="GUPA ile iletişim kurulamadı!";
 			return $data;
 		}
-		if ($result['error_code']==0)
+		if (isset($result['matrix']))
 		{
-			return $result['matrix'];
+			return json_decode($result['matrix']);
 		}else
 		{
 			$data['errorMessage']=$this->gupaErrorMessage($result['error_code']);
@@ -64,9 +136,9 @@ class MatrixModel extends CI_Model {
 			$data['errorMessage']="GUPA ile iletişim kurulamadı!";
 			return $data;
 		}
-		if ($result['error_code']==0)
+		if (isset($result['matrix']))
 		{
-			return $result['matrix'];
+			return json_decode($result['matrix']);
 		}else
 		{
 			$data['errorMessage']=$this->gupaErrorMessage($result['error_code']);
@@ -79,15 +151,16 @@ class MatrixModel extends CI_Model {
 			'matrix_a'=>json_encode($matrix_a),
 			'matrix_b'=>json_encode($matrix_b)
 		);
+		print_r($params);
 		$result=json_decode($this->gupa->api('/matrix/multiply/',$params,NULL),TRUE);
 		if ($result == null)
 		{
 			$data['errorMessage']="GUPA ile iletişim kurulamadı!";
 			return $data;
 		}
-		if ($result['error_code']==0)
+		if (isset($result['matrix']))
 		{
-			return $result['matrix'];
+			return json_decode($result['matrix']);
 		}else
 		{
 			$data['errorMessage']=$this->gupaErrorMessage($result['error_code']);
@@ -106,9 +179,9 @@ class MatrixModel extends CI_Model {
 			$data['errorMessage']="GUPA ile iletişim kurulamadı!";
 			return $data;
 		}
-		if ($result['error_code']==0)
+		if (isset($result['matrix']))
 		{
-			return $result['matrix'];
+			return json_decode($result['matrix']);
 		}else
 		{
 			$data['errorMessage']=$this->gupaErrorMessage($result['error_code']);
@@ -127,15 +200,16 @@ class MatrixModel extends CI_Model {
 			$data['errorMessage']="GUPA ile iletişim kurulamadı!";
 			return $data;
 		}
-		if ($result['error_code']==0)
+		if (isset($result['matrix']))
 		{
-			return $result['matrix'];
+			return json_decode($result['matrix']);
 		}else
 		{
 			$data['errorMessage']=$this->gupaErrorMessage($result['error_code']);
 			return $data;
 		}
 	}
+
 	
 	/**
 	 * GUPA servisinden gelen error_code parametresine göre hata mesajı üretir.

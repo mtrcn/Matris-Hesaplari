@@ -37,33 +37,6 @@ class Gupa
   public static $BASE_DOMAIN = 'http://www.geomatikuygulamalar.com';
   public static $API_DOMAIN = 'http://gupa.geomatikuygulamalar.com/v1';
   
-   /**
-   * GUPA Services Map.
-   */
-  protected static $SERVICE_MAP =array(
-  	'/oauth/access_token/',
-  	'/oauth/request_token/',
-    '/license/get_token',
-    '/license/get_license',
-    '/user/get_info/',
-    '/basic_calc/coord/',
-  	'/basic_calc/azmt_dist/',
-  	'/traverse/free/',
-  	'/traverse/ring/',
-  	'/traverse/closed/',
-  	'/reduction/reduce/',
-  	'/reduction/geometric/',
-  	'/reduction/meteorological/',
-  	'/coord_conv/elip_to_cart/',
-  	'/coord_conv/cart_to_ellip/',
-  	'/matrix/multiply/',
-  	'/matrix/sum/',
-  	'/matrix/minus/',
-  	'/matrix/inverse/',
-  	'/matrix/transpose/',
-  	'/matrix/det/'
-  );
-
   /**
    * The Application ID.
    */
@@ -254,10 +227,7 @@ class Gupa
    * @return String the URL for the given parameters
    */
   protected function getApiUrl($method) {
-  	if (in_array($method, self::$SERVICE_MAP))
-        return self::$API_DOMAIN.strtolower($method);
-    else
-    	echo  "Service not exist.";
+      return self::$API_DOMAIN.strtolower($method);
   }
   
   /**

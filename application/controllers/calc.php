@@ -11,10 +11,107 @@ class Calc extends CI_Controller {
 
 	function index()
 	{
+		if (!$this->gu_session->isLogged()) die("Erişim Yetkiniz Yok!");
 		$this->load->view('index');
 	}
 	
+	/**
+	* Kaydedilmiş projeleri getirir
+	*/
+	function getProjects()
+	{
+		if (!$this->gu_session->isLogged()) die("Erişim Yetkiniz Yok!");
+		$projects = $this->MatrixModel->getProjects();
+		if ($projects->num_rows()==0)
+		{
+			echo '
+			<div class="ui-state-highlight">
+				<p>
+					<span class="ui-icon ui-icon-info" style="float:left; padding: 1px;"></span>
+					Henüz kayıtlı bir projeniz yok.
+				</p>
+			</div>
+			';
+		}else
+		{
+			echo '<label for="pid">Açmak istediğiniz projeyi listeden seçin:</label>';
+			echo '<select id="pid" style="width:100%">';
+			foreach ($projects->result() as $item) {
+				echo '<option value="'.$item->pid.'">'.$item->tag.'</option>';
+			}
+			echo '</select>';
+		}
+	}
+	
+	/**
+	* Kaydedilmiş projeyi getirir
+	*/
+	function load()
+	{
+		if (!$this->gu_session->isLogged()) die("Erişim Yetkiniz Yok!");
+		$pid = trim($this->input->post('pid',TRUE));
+		if (empty($pid))
+		{
+			die("Proje no eksik!");
+		}
+		$project = $this->MatrixModel->getProject($pid);
+		if ($project==null)
+		{
+			die("Proje bulunamadı!");
+		}else
+		{
+			echo $project['params'];
+		}
+	}
+	
+	/**
+	* Matris hesabını daha sonra çalışmak üzere kaydeder.
+	*/
+	function save()
+	{
+		if (!$this->gu_session->isLogged()) die("Erişim Yetkiniz Yok!");
+		$tag = trim($this->input->post('tag',TRUE));
+		if (empty($tag))
+		{
+			echo '
+			<div class="ui-state-error ui-corner-all">
+				<p>
+					<span class="ui-icon ui-icon-alert" style="float:left; padding: 1px;"></span>
+					Lütfen etiket alanını boş bırakmayın.
+				</p>
+			</div>
+			';
+			exit();
+		}
+		$postParams = $this->input->post('params');
+		$params = json_decode($postParams, TRUE);
+		if ($params!=null)
+		{
+			$isExist = $this->MatrixModel->isExist($tag);
+			if ($isExist)
+			{
+				echo 'Daha önce bu etiketle başka bir proje kaydetmişsiniz.';
+			}else
+			{
+				$saveData=array(
+					'uid' => $this->gu_session->getUID(),
+					'date' => time(),
+					'tag' => $tag,
+					'params' => $postParams
+				);
+				$this->MatrixModel->save($saveData); 
+				echo 'Projeniz başarıyla kaydedildi.';
+			}
+		}
+		else
+		{
+			echo 'Kayıt verisi formatı doğrulanamıyor.';
+			exit();
+		}
+	}
+	
 	function evaluate(){
+		if (!$this->gu_session->isLogged()) die("Erişim Yetkiniz Yok!");
 		$postReq = $this->input->post('req');
 		$req = json_decode($postReq, TRUE);
 		$var = array();
@@ -24,7 +121,8 @@ class Calc extends CI_Controller {
 		{
 			foreach($req['matrix'] as $matrix)
 			{
-	             if($matrix['metadata']['act'] == "")
+	             
+				if($matrix['metadata']['act'] == "")
 	             {
 	             	$var[$i++] = $matrix['data'];
 	             	continue;
@@ -84,8 +182,23 @@ class Calc extends CI_Controller {
 					$result = $var[$val+1] = $this->MatrixModel->minus($var[$val],$var[$val+1]);
 				}
 			}
-			
-			print_r($result);
+			if (!isset($result['errorMessage']))
+			{
+				$result = array(
+							'data' => is_array($result)?$result:array(array($result)), 
+							'metadata' => array(
+										'rows'=>count($result),
+										'columns'=>is_array($result[0])?count($result[0]):1,
+										'title' => '',
+										'act' => ''
+										)
+						);
+				echo json_encode($result);
+			}
+			else
+			{
+				echo "error";
+			}
 		}
 		else
 		{

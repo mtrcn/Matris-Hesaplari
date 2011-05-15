@@ -47,26 +47,27 @@
 						  +"<option value=\"multiply\">x</option>"
 						  +"<option value=\"\">|</option>"
 						  +"</select>";
-					  if (i==5) formul+="<br/>";
 					  i++;
 					});
 					$("#formul").html(formul);
 				 }
                  });
-
             });
 			
 			function calculate()
 			{
 				req['matrix'] = jQuery.sheet.instance[0].exportSheet.json();
-				//alert(jQuery.sheet.instance[0].kill());
-				//console.log(jt.length);
 				var i = 0;
 				var row = 0;
 				var column = 0;
 				req['formula'] = {mat:{},opt:{}};
 				for(i = 0; i < req['matrix'].length; i++)
 				{
+					if (req['matrix'][i]['metadata']['act']=="TERS" && req['matrix'][i]['metadata']['columns'] > req['matrix'][i]['metadata']['rows'])
+					{
+						alert(req['matrix'][i]['metadata']['title']+" : Tersi alınacak matrisin sütun sayısı satır sayısından fazla olamaz!");
+						return false;
+					}
 					for(row in req['matrix'][i]['data'])
 					{
 						for(column in req['matrix'][i]['data'][row])
@@ -97,16 +98,34 @@
 						"<?php echo base_url(); ?>calc/evaluate", 
 						{req: $.toJSON(req)},
 						function(result){
-							result = eval("("+result+")");
+							if (result!="error")
+							{
+								result = eval("("+result+")");
+								jQuery.sheet.instance[0].importSheet([result]);
+							}
+							else
+							{
+								alert("İşlem hataya neden oldu!");
+							}							
 						}
 				);
 				
 				
 			}
 
+			function exportTXT(instance){
+
+				$("#txtExcel").val(instance.exportSheet.text());
+				$( "#export-message" ).dialog({
+					modal: true,
+					width:400
+				});
+
+			}
+
 			function isNumber(text)
 			{
-  				var ValidChars = "0123456789.";
+  				var ValidChars = "-0123456789.";
   				var IsNumber=true;
  				var Char;
  				if (text.length == 0)
@@ -125,17 +144,81 @@
   				return IsNumber;
 			}
 			
-			function fromJson()
+			function showSaveDialog()
 			{
-				var table = jQuery.sheet.makeTable.json(req,false);
-				jQuery.sheet.instance[0].openSheet(table,true);
+				$( "#save-message" ).dialog({
+					modal: true,
+					width:320,
+					buttons: { 
+						"Vazgeç": function() { $(this).dialog("close"); }, 
+						"Kaydet": function() { 
+								if ($("#txtTag").val()=="")
+								{
+									alert("Etiket alanı boş olamaz!");
+									return false;
+								}
+								else
+								{
+									$.post(
+											"<?php echo base_url(); ?>calc/save", 
+											{params: $.toJSON(jQuery.sheet.instance[0].exportSheet.json()), tag: $("#txtTag").val()},
+											function(result){
+												alert(result);
+												$( "#save-message" ).dialog("close");
+											}
+									);
+								}
+							} 
+						}
+				});
+			}
+			
+			function showLoadDialog()
+			{
+				$.post(
+						"<?php echo base_url(); ?>calc/getProjects",
+						function(result){
+							$("#load-message").html(result);
+							$( "#load-message" ).dialog({
+								modal: true,
+								width:320,
+								buttons: { 
+									"Vazgeç": function() { $(this).dialog("close"); }, 
+									"Aç": function() { 
+											var pid = jQuery("#pid").val();
+											if (pid){
+												$.post(
+														"<?php echo base_url(); ?>calc/load", 
+														{pid:pid},
+														function(result){
+															result = eval("("+result+")");
+															var table = jQuery.sheet.makeTable.json(result,false);
+															jQuery.sheet.instance[0].openSheet(table,true);
+															$( "#load-message").dialog("close");
+														}
+												);
+											}
+										} 
+									}
+							});
+						}
+				);	
+			}
+
+			function showHelpDialog()
+			{
+				$( "#help-message" ).dialog({
+					modal: true,
+					width:500,
+					buttons: { 
+						"Kapat": function() { $(this).dialog("close"); }
+					}
+				});
 			}
             
-            //This function builds the inline menu to make it easy to interact with each sheet instance
             function inlineMenu(instance){
                 var I = (instance ? instance.length : 0);
                 
-                //we want to be able to edit the html for the menu to make them multi-instance
                 var html = $('#inlineMenu').html().replace(/sheetInstance/g, "$.sheet.instance[" + I + "]");
                 
                 var menu = $(html);               
@@ -179,16 +262,51 @@ body {
 	<tr>
 		<td>
 		<div class="ui-widget-content ui-corner-all"
-			style="height: 70px; width: 645px;">
+			style="min-height: 70px; width: 645px;">
 		<div class="ui-widget-header ui-corner-top">Hesap Formülü</div>
 		<div id="formul" style="margin: 5px"></div>
 		</div>
 		<div style="text-align: center"><input type="button"
 			value="Hesapla" onClick="calculate()"> <input type="button"
-			value="Kaydet" onClick="fromJson()"></div>
+			value="Kaydet" onClick="showSaveDialog()"> <input type="button"
+			value="Projelerim" onClick="showLoadDialog()">
 		</td>
 	</tr>
 </table>
+</div>
+<div class="ui-corner-all wrapper" style="text-align:right;">
+Geliştirici: <a href="http://www.geomatikuygulamalar.com/store/developer/2570140711" target="_blank" title="Mete Ercan Pakdil">Mete Ercan Pakdil</a>
+</div>
+<div id="export-message" title="Dışa Aktar" style="display: none;">
+	<p>
+		Bu kutu içindeki metni Excel çalışma sayfasına kopyalayarak aktarabilirsiniz.
+		<textarea rows="10" cols="45" id="txtExcel"></textarea>
+	</p>
+</div>
+<div id="save-message" title="Kaydet" style="display: none;">
+	<p>
+		<label for="txtTag">Bir etiket girin:<br/>
+		<input id="txtTag" style="width:280px;"></label>
+	</p>
+</div>
+<div id="help-message" title="Yardım" style="display: none; font-size:11px;">
+	<p>
+		<span class="ui-icon ui-icon-triangle-1-e" style="float:left; padding: 1px;"></span>
+		<strong>Matris Üzerinde İşlem Yapmak İçin</strong><br/>
+		Bir matrisi işleme sokmadan önce tersini, transpozesini veya determminantını almak istiyorsanız çalışma sayfası 
+		altındaki sekmelerden işlem yapmak istediğiniz matrisin adına tıklayarak çıkan kutuda matris adının başına 
+		<i>TERS, TRANS, DET</i> ifadelerinden birini ekleyin ve iki nokta üst üste ":" koyun.<br/>
+		<strong>Örnek:</strong> "TRANS:Matris 1" ifadesi matrisin transpozesini alır.
+	</p>
+	<p>
+		<span class="ui-icon ui-icon-triangle-1-e" style="float:left; padding: 1px;"></span>
+		<strong>Microsoft Excel ile çalışmak için</strong><br/>
+		Microsoft Excel'den matrisleri kopyalarak aynı boyutta burada oluşturulmuş bir matrise yapıştırbilirsiniz. 
+		Aynı şekilde menüden "Dışa Aktar" ikonuna tıklayarak oluşturulan ham veriyi kopyalayarak Microsoft Excel'de çalışma sayfanızdaki
+		herhangi bir hücreye tıklayarak yapıştırabilirsiniz. 
+	</p>
+</div>
+<div id="load-message" title="Proje Aç" style="display: none;"></div>
 <span id="inlineMenu" style="display: none;"> <span> <a
 	href="#" onclick="sheetInstance.controlFactory.addRow(); return false;"
 	title="Altına Satır Ekle"> <img alt="Altına Satır Ekle"
@@ -223,9 +341,15 @@ body {
 	title="Matris Sil"> <img alt="Matris Sil"
 	src="<?php echo base_url(); ?>images/icons/table_delete.png" /> </a> <a href="#"
 	onclick="sheetInstance.cellFind(); return false;" title="Ara"> <img
-	alt="Ara" src="<?php echo base_url(); ?>images/icons/find.png" /> </a> <a href="#"
-	onclick="sheetInstance.toggleFullScreen(); $('#lockedMenu').toggle(); return false;"
+	alt="Ara" src="<?php echo base_url(); ?>images/icons/find.png" /> </a>
+	 <a href="#"
+	onclick="exportTXT(sheetInstance);" title="Dışa Aktar"> <img
+	alt="Dışa Aktar" src="<?php echo base_url(); ?>images/icons/excel.png" /> </a> <a href="#"
+	onclick="sheetInstance.toggleFullScreen(); return false;"
 	title="Tam Ekran"> <img alt="Tam Ekran"
-	src="<?php echo base_url(); ?>images/icons/arrow_out.png" /> </a> </span> </span>
+	src="<?php echo base_url(); ?>images/icons/arrow_out.png" /> </a> 	<a href="#"
+	onclick="showHelpDialog();"
+	title="Yardım"> <img alt="Yardım"
+	src="<?php echo base_url(); ?>images/icons/help.png" /> </a></span> </span>
 </body>
 </html>

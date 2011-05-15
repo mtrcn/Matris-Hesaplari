@@ -1893,6 +1893,15 @@ jQuery.sheet = {
 					}, true);
 				}
 			},
+			importSheet: function(o) {
+				if (o) {
+					jS.evt.cellEditAbandon();
+					jS.setDirty(true);
+					var newSheetControl = jS.controlFactory.sheetUI(jQuery.sheet.makeTable.json(o), jS.sheetCount + 1, function(v) { 
+						jS.setActiveSheet(jS.sheetCount);
+					}, true);
+				}
+			},
 			deleteSheet: function() { /* removes the currently selected sheet */
 				jS.obj.tableControl().remove();
 				jS.obj.tabContainer().children().eq(jS.i).remove();
@@ -2107,12 +2116,7 @@ jQuery.sheet = {
 				jS.obj.sheet().find('tr:last td').each(function(i) {
 					jQuery(this).removeAttr('formula');
 					try {
-						//To test this, we need to first make sure it's a string, so converting is done by adding an empty character.
-						if ((rowArray[i] + '').charAt(0) == "=") {
-							jQuery(this).attr('formula', rowArray[i]);					
-						} else {
-							jQuery(this).html(rowArray[i]);
-						}
+						jQuery(this).html(rowArray[i]);
 					} catch(e) {
 						//We want to make sure that is something bad happens, we let the user know
 						error += e + ';\n';
@@ -2134,12 +2138,7 @@ jQuery.sheet = {
 				jS.obj.sheet().find('tr').each(function(i) {
 					var o = jQuery(this).find('td:last');
 					try {
-						//To test this, we need to first make sure it's a string, so converting is done by adding an empty character.
-						if ((columnArray[i] + '').charAt(0) == "=") {
-							o.attr('formula', columnArray[i]);					
-						} else {
-							o.html(columnArray[i]);
-						}
+						o.html(columnArray[i]);
 					} catch(e) {
 						//We want to make sure that is something bad happens, we let the user know
 						error += e + ';\n';
@@ -2167,7 +2166,6 @@ jQuery.sheet = {
 						var trs = table.find('tr');
 						var rowCount = trs.length;
 						var colCount = 0;
-						var col_widths = '';
 						
 						trs.each(function(i) {
 							var tr = jQuery(this);
@@ -2208,6 +2206,31 @@ jQuery.sheet = {
 						documents.push(document); //append to documents
 					});
 					return documents;
+				},
+				text: function() {
+					var document = "";
+					var table = jS.obj.sheet();
+					var trs = table.find('tr');
+					
+					trs.each(function(i) {
+						var tr = jQuery(this);
+						var tds = tr.find('td');
+						var isFirstRow = true;
+						tds.each(function(j) {
+							var td = jQuery(this);
+							if (!isFirstRow)
+							{
+								document +="	"+ td.text();
+							}
+							else
+							{
+								document +=td.text();
+								isFirstRow = false;
+							}
+						});
+						document +="\n";
+					});
+					return document;
 				}
 			},
 			sheetSyncSizeToDivs: function() { /* syncs a sheet's size from bars/divs */
@@ -2621,10 +2644,11 @@ jQuery.sheet = {
 			var tables = jQuery('<div />');
 			
 			for (var i = 0; i < sheet.length; i++) {
-				var colCount = parseInt(sheet[i].metadata.columns);
-				var rowCount = parseInt(sheet[i].metadata.rows);
-				title = sheet[i].metadata.title;
-				title = (title ? title : "Matris " + (i+1));
+				var colCount = parseInt(sheet[i]['metadata']['columns']);
+				var rowCount = parseInt(sheet[i]['metadata']['rows']);
+				title = sheet[i]['metadata']['title'];
+				//title = (title ? title : "Matris " + (jQuery.sheet.instance.length+1));
+				var act = sheet[i]['metadata']['act'];
 			
 				var table = jQuery("<table />");
 				var tableWidth = 0;
@@ -2639,15 +2663,15 @@ jQuery.sheet = {
 				
 				table
 					.attr('title', title)
-					.attr('act', '')
+					.attr('act', act)
 					.width(colCount*40);
 				
 				for (var x = 0; x < rowCount; x++) { //tr
 					var tr = jQuery('<tr />').appendTo(table);
-					tr.attr('height', (sheet[i]['data']['r' + x].h ? sheet[i]['data']['r' + x].h : 18));
+					tr.attr('height', 18);
 					
 					for (var y = 0; y < colCount; y++) { //td
-						var cell = sheet[i]['data']['r' + x]['c' + y];
+						var cell = sheet[i]['data'][x][y];
 						var cur_val;
 						
 						if (cell) {
