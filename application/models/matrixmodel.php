@@ -151,7 +151,7 @@ class MatrixModel extends CI_Model {
 			'matrix_a'=>json_encode($matrix_a),
 			'matrix_b'=>json_encode($matrix_b)
 		);
-		print_r($params);
+		//print_r($params);
 		$result=json_decode($this->gupa->api('/matrix/multiply/',$params,NULL),TRUE);
 		if ($result == null)
 		{

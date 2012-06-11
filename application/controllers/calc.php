@@ -12,7 +12,7 @@ class Calc extends CI_Controller {
 	function index()
 	{
 		if (!$this->gu_session->isLogged()) die("Erişim Yetkiniz Yok!");
-		$this->load->view('index');
+		$this->load->view('calc');
 	}
 	
 	/**
